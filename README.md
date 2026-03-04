@@ -292,16 +292,6 @@ server/frontend/src/screens/tasks/
 ├── TaskChainView.tsx    ← NEW (chain visualization component)
 ├── Detail.tsx           ← MODIFIED (3 small additions)
 └── ...existing files
-
-leyu/
-├── README.md            ← This file
-├── chain-demo.html      ← Static demo (no backend needed)
-├── [REC] Task 1 (1).json
-├── [REC] Task 2 (Validation of Task 1).json
-├── [REC] Task 3 (Validation of Task 2).json
-└── Task 1 Dataset.json
-```
-
 ---
 
 ## Appendix: Live HTML Source (For PDF/Renderers)
