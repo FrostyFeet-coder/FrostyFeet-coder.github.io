@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Chain Visualization — Preview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f0f0;
+            color: #171717;
+        }
+
+        /* Layout matching the Karya platform */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: #182F01;
+            color: white;
+            padding: 20px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            padding: 10px 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-logo svg {
+            width: 36px;
+            height: 36px;
+        }
+
+        .sidebar-logo span {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-item {
+            padding: 12px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background: #264606;
+        }
+
+        .sidebar-item.active {
+            background: #F0F3ED;
+            color: #182F01;
+            font-weight: 600;
+        }
+
+        /* Main content */
+        .main {
+            flex: 1;
+            display: flex;
+        }
+
+        /* Task list (left panel) */
+        .task-list {
+            width: 300px;
+            background: #1a1a2e;
+            color: white;
+            padding: 16px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .task-list input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #2a2a3e;
+            color: white;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .task-item {
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 6px;
+            transition: background 0.2s;
+        }
+
+        .task-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .task-item.active {
+            background: rgba(78, 191, 135, 0.15);
+            border-left: 3px solid #4EBF87;
+        }
+
+        .task-item .name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .task-item .meta {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .task-item .stats {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        /* Detail panel (right) */
+        .detail {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: #f5f5f5;
+            width: calc(100vw - 520px);
+        }
+
+        .detail-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Task header */
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .task-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-active {
+            border: 1.5px solid #4EBF87;
+            color: #4EBF87;
+        }
+
+        .btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #f0f0f0;
+        }
+
+        .btn-green {
+            background: #4EBF87;
+            color: white;
+            border: none;
+        }
+
+        .btn-green:hover {
+            background: #3da872;
+        }
+
+        .btn-red {
+            background: #DE3730;
+            color: white;
+            border: none;
+        }
+
+        .btn-red:hover {
+            background: #c52f28;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 16px 0;
+        }
+
+        .task-desc {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .section-heading {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0A1E32;
+            margin: 24px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* ========================================= */
+        /*  TASK CHAIN VISUALIZATION — NEW STYLES    */
+        /* ========================================= */
+        .chain-container {
+            padding: 20px 16px;
+            overflow-x: auto;
+            background: linear-gradient(135deg, #fafffe 0%, #f8f9ff 100%);
+            border-radius: 8px;
+            border: 1px solid #e8ece8;
+        }
+
+        .chain-flow {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-wrap: nowrap;
+            min-width: max-content;
+        }
+
+        .chain-node {
+            min-width: 120px;
+            max-width: 180px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: white;
+            border: 1.5px solid;
+        }
+
+        .chain-node:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .chain-node.task {
+            border-color: #0082D7;
+        }
+
+        .chain-node.task .node-icon {
+            color: #0082D7;
+        }
+
+        .chain-node.task.current {
+            border: 3px solid #0082D7;
+            background: #E8F6FF;
+            box-shadow: 0 2px 8px rgba(0, 130, 215, 0.15);
+        }
+
+        .chain-node.task.current .node-name {
+            font-weight: 700;
+        }
+
+        .chain-node.dataset {
+            border-color: #41B47D;
+        }
+
+        .chain-node.dataset .node-icon {
+            color: #41B47D;
+        }
+
+        .chain-node.dataset.current {
+            border: 3px solid #41B47D;
+            background: #F1FFF4;
+            box-shadow: 0 2px 8px rgba(65, 180, 125, 0.15);
+        }
+
+        .chain-node.dataset.current .node-name {
+            font-weight: 700;
+        }
+
+        .node-icon {
+            font-size: 14px;
+        }
+
+        .node-name {
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            color: #0A1E32;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .node-type {
+            font-size: 9px;
+            color: #808080;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chain-arrow {
+            padding: 0 6px;
+            color: #808080;
+            font-size: 14px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            background: #f8f8f8;
+            color: #555;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .badge-green {
+            background: #4EBF87;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <svg viewBox="0 0 36 36" fill="none">
+                    <circle cx="12" cy="10" r="4" fill="#C8E56E" />
+                    <path d="M8 28c0-6 4-10 8-10s8 4 8 10" stroke="#4EBF87" stroke-width="3" fill="none" />
+                    <path d="M20 8l6-4m0 0l2 6m-2-6l-4 2" stroke="#4EBF87" stroke-width="2" />
+                </svg>
+                <span>KARYA</span>
+            </div>
+            <div class="sidebar-item">📊 Datasets</div>
+            <div class="sidebar-item active">📋 Tasks</div>
+            <div class="sidebar-item">👤 Avatars</div>
+            <div class="sidebar-item">📄 Reports</div>
+            <div class="sidebar-item">⚙️ Scripts</div>
+            <div class="sidebar-item">📈 Dashboard</div>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-list">
+            <input type="text" placeholder="filter by name" />
+            <div class="task-item">
+                <div class="name">[REC] Task 1</div>
+                <div class="meta">5 microtasks · created 3 Mar 2026</div>
+                <div class="stats">⊙ 5 ✓ 3 ✗ 0 👥 2</div>
+            </div>
+            <div class="task-item active">
+                <div class="name">[VAL] [REC] Task 2</div>
+                <div class="meta">3 microtasks · created 3 Mar 2026</div>
+                <div class="stats">⊙ 3 ✓ 1 ✗ 0 👥 1</div>
+            </div>
+            <div class="task-item">
+                <div class="name">[VAL] [REC] Task 3</div>
+                <div class="meta">1 microtasks · created 3 Mar 2026</div>
+                <div class="stats">⊙ 1 ✓ 0 ✗ 0 👥 0</div>
+            </div>
+            <div class="task-item">
+                <div class="name">Emotion Survey - 2</div>
+                <div class="meta">1 microtasks · created 17 Feb 2026</div>
+                <div class="stats">⊙ 0 ✓ 0 ✗ 0 👥 0</div>
+            </div>
+            <div class="task-item">
+                <div class="name">LLM Evaluation</div>
+                <div class="meta">20 microtasks · created 23 Dec 2025</div>
+                <div class="stats">⊙ 0 ✓ 0 ✗ 0 👥 0</div>
+            </div>
+        </div>
+
+        <!-- Detail Panel -->
+        <div class="detail">
+            <div class="detail-card">
+                <div class="task-header">
+                    <div class="task-title">[VAL] [REC] Task 2</div>
+                    <div class="header-actions">
+                        <span class="badge badge-active">ACTIVE</span>
+                        <button class="btn">📱 Generate QR Code</button>
+                        <button class="btn">📋 Clone</button>
+                        <button class="btn">⬇</button>
+                    </div>
+                </div>
+                <hr class="divider">
+                <div class="task-desc">Is the audio recording hearable? Validate Task 1 output.</div>
+                <div class="action-row">
+                    <button class="btn btn-green">✏️ Edit Task</button>
+                    <button class="btn btn-red">Mark As Completed</button>
+                </div>
+
+                <!-- TASK CHAIN VIEW -->
+                <div class="section-heading">Task Chain</div>
+                <div class="chain-container">
+                    <div class="chain-flow">
+
+                        <!-- Node 1: Input Dataset -->
+                        <div class="chain-node dataset" onclick="alert('Navigate to: Task 1 Dataset')">
+                            <div class="node-icon"><i class="fas fa-database"></i></div>
+                            <div class="node-name">Task 1 Dataset</div>
+                            <div class="node-type">Dataset</div>
+                        </div>
+                        <div class="chain-arrow"><i class="fas fa-arrow-right"></i></div>
+
+                        <!-- Node 2: Task 1 -->
+                        <div class="chain-node task" onclick="alert('Navigate to: [REC] Task 1')">
+                            <div class="node-icon"><i class="fas fa-tasks"></i></div>
+                            <div class="node-name">[REC] Task 1</div>
+                            <div class="node-type">Task</div>
+                        </div>
+                        <div class="chain-arrow"><i class="fas fa-arrow-right"></i></div>
+
+                        <!-- Node 3: Output Dataset 1 -->
+                        <div class="chain-node dataset" onclick="alert('Navigate to: [OUT] [REC] Task 1')">
+                            <div class="node-icon"><i class="fas fa-database"></i></div>
+                            <div class="node-name">[OUT] Task 1</div>
+                            <div class="node-type">Dataset</div>
+                        </div>
+                        <div class="chain-arrow"><i class="fas fa-arrow-right"></i></div>
+
+                        <!-- Node 4: Task 2 (CURRENT) -->
+                        <div class="chain-node task current" onclick="alert('You are here!')">
+                            <div class="node-icon"><i class="fas fa-tasks"></i></div>
+                            <div class="node-name">[VAL] Task 2</div>
+                            <div class="node-type">Task</div>
+                        </div>
+                        <div class="chain-arrow"><i class="fas fa-arrow-right"></i></div>
+
+                        <!-- Node 5: Output Dataset 2 -->
+                        <div class="chain-node dataset" onclick="alert('Navigate to: [OUT] [VAL] [REC] Task 2')">
+                            <div class="node-icon"><i class="fas fa-database"></i></div>
+                            <div class="node-name">[OUT] Task 2</div>
+                            <div class="node-type">Dataset</div>
+                        </div>
+                        <div class="chain-arrow"><i class="fas fa-arrow-right"></i></div>
+
+                        <!-- Node 6: Task 3 -->
+                        <div class="chain-node task" onclick="alert('Navigate to: [VAL] [REC] Task 3')">
+                            <div class="node-icon"><i class="fas fa-tasks"></i></div>
+                            <div class="node-name">[VAL] Task 3</div>
+                            <div class="node-type">Task</div>
+                        </div>
+                        <div class="chain-arrow"><i class="fas fa-arrow-right"></i></div>
+
+                        <!-- Node 7: Output Dataset 3 -->
+                        <div class="chain-node dataset" onclick="alert('Navigate to: [OUT] [VAL] [REC] Task 3')">
+                            <div class="node-icon"><i class="fas fa-database"></i></div>
+                            <div class="node-name">[OUT] Task 3</div>
+                            <div class="node-type">Dataset</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Current Subscriptions -->
+                <div class="section-heading">Current Subscriptions</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Subscription ID</th>
+                            <th>Dataset ID</th>
+                            <th>Dataset Name</th>
+                            <th>Status</th>
+                            <th>Subscribed On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>63501</td>
+                            <td>22208</td>
+                            <td>[OUT] [REC] Task 1</td>
+                            <td><span class="badge-green">ACTIVE</span></td>
+                            <td>3 March 2026 at 14:30:00</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Existing Task Assignments -->
+                <div class="section-heading">Existing Task Assignments</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Assigned To</th>
+                            <th>Status</th>
+                            <th>Order</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Main Box</td>
+                            <td><span class="badge-green">ASSIGNED</span></td>
+                            <td>SEQUENTIAL</td>
+                            <td>3 March 2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
