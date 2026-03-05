@@ -7,16 +7,16 @@ A **dual visualization system** for task pipelines on the Karya Admin Portal. Wh
 ### Visualization 1: Data Pipeline (`TaskChainView`)
 Used for projects where tasks pass data to each other.
 
-![Data Pipeline Visualization](./assets/data-pipeline.png)
+![Data Pipeline Visualization](./data-pipeline.png)
 
 ### Visualization 2: User Journey Sequence (`TaskSequenceView`)
 Used for projects like **Persuasion** where the flow is dictated by a sequential array of task IDs in the user's journey, rather than data handoffs.
 
-![User Journey Sequence](./assets/sequence-view.png)
+![User Journey Sequence](./sequence-view.png)
 
 ### Visualization 3: Full Chain View (Tasks 3–5)
 
-![Task Chain — Tasks 3 to 5](./assets/task3-5.png)
+![Task Chain — Tasks 3 to 5](./task3-5.png)
 
 **Key behaviors:**
 - **Dynamic** — computed in real-time from live API data (`dataset_subscriptions`) or task parameters (`params.sequence`).
